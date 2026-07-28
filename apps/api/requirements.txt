@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+redis
+chromadb
+google-generativeai
+langgraph
+pydantic-settings
+python-jose[cryptography]
+python-multipart
+httpx
+sse-starlette
+pydantic
+email-validator
+reportlab
+reportlab
