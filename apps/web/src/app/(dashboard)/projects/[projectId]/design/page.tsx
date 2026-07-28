@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { apiRequest, getAuthToken } from '@/lib/api';
+import { apiRequest, getAuthToken, API_BASE_URL } from '@/lib/api';
 import Editor from '@monaco-editor/react';
 
 interface Message {
@@ -135,7 +135,7 @@ export default function DesignWorkspacePage() {
     setMessages((prev) => [...prev, userMsgLocal]);
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/projects/${projectId}/chat`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects/${projectId}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

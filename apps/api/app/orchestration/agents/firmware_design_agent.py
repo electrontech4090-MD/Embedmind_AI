@@ -1,11 +1,8 @@
 import json
-import google.generativeai as genai
 from pydantic import BaseModel, Field
 from app.core.config import settings
 from app.orchestration.state import GraphState
-
-# Configure Gemini
-genai.configure(api_key=settings.GEMINI_API_KEY)
+from app.orchestration.llm_client import query_llm
 
 class FirmwareFileItem(BaseModel):
     filename: str = Field(description="Name of the file, e.g. main.c, dht22.c, config.h.")
@@ -41,24 +38,18 @@ raw_schema = {
 }
 
 def run_firmware_design_agent(state: GraphState) -> dict:
-    model = genai.GenerativeModel(
-        model_name="gemini-3.5-flash",
-        generation_config={
-            "response_mime_type": "application/json",
-            "response_schema": raw_schema,
-            "temperature": 0.1
-        },
-        system_instruction=(
-            "You are the Firmware Design Agent for EmbedMind AI, an expert embedded firmware developer.\n"
-            "Your task is to take the hardware design specification (MCU selection, component interface types, and pin mappings) and conversation history, and generate fully functional, synthesizable microcontroller drivers and main setup code (e.g., main.cpp, dht22.h, config.h).\n"
-            "You MUST conform the generated code to use the EXACT GPIO pin mappings defined in the hardware pin map. Output clear, compile-ready code.\n\n"
-            "You MUST respond with a JSON object that strictly adheres to the requested schema. Provide at least a config header and a main file."
-        )
+    system_instruction = (
+        "You are the Firmware Design Agent for EmbedMind AI, an expert embedded firmware developer.\n"
+        "Your task is to take the hardware design specification (MCU selection, component interface types, and pin mappings) and conversation history, and generate fully functional, synthesizable microcontroller drivers and main setup code (e.g., main.cpp, dht22.h, config.h).\n"
+        "You MUST conform the generated code to use the EXACT GPIO pin mappings defined in the hardware pin map. Output clear, compile-ready code.\n\n"
+        "You MUST respond with a JSON object that strictly adheres to the requested schema. Provide at least a config header and a main file."
     )
 
     history_str = ""
     for msg in state.get("conversation_history", []):
-        history_str += f"{msg.role.upper()}: {msg.content}\n"
+        role = msg.role if hasattr(msg, "role") else msg.get("role", "user")
+        content = msg.content if hasattr(msg, "content") else msg.get("content", "")
+        history_str += f"{role.upper()}: {content}\n"
 
     design_str = (
         f"Hardware Design Spec:\n"
@@ -74,8 +65,7 @@ def run_firmware_design_agent(state: GraphState) -> dict:
     )
 
     try:
-        response = model.generate_content(prompt)
-        res_json = json.loads(response.text)
+        res_json = query_llm(system_instruction, prompt, FirmwareDesignOutput)
         parsed = FirmwareDesignOutput(**res_json)
         
         # Save to database (will be done in router, but we update the graph state here)

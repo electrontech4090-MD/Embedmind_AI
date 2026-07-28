@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { apiRequest, getAuthToken } from '@/lib/api';
+import { apiRequest, getAuthToken, API_BASE_URL } from '@/lib/api';
 import EditorComponent from './EditorComponent';
 
 interface Message {
@@ -295,7 +295,7 @@ export default function ProjectWorkspacePage() {
     setMessages((prev) => [...prev, userMsgLocal]);
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/projects/${projectId}/chat`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects/${projectId}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -364,7 +364,7 @@ export default function ProjectWorkspacePage() {
     setDebugFindings([]);
     try {
       const token = getAuthToken();
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/projects/${projectId}/debug`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/projects/${projectId}/debug`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -414,7 +414,7 @@ export default function ProjectWorkspacePage() {
     if (format === 'pdf') {
       try {
         const token = getAuthToken();
-        const response = await fetch(`http://127.0.0.1:8000/api/v1/projects/${projectId}/report/pdf`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/projects/${projectId}/report/pdf`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

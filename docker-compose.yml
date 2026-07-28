@@ -1,6 +1,39 @@
-version: '3.8'
-
 services:
+  # 1. FastAPI Backend API Service
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: embedmind-api
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - DATABASE_URL=postgresql://embedmind_user:embedmind_password@postgres:5432/embedmind_db
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # 2. Next.js Web Frontend Application
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: embedmind-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - api
+
+  # 3. PostgreSQL Database
   postgres:
     image: postgres:15-alpine
     container_name: embedmind-postgres
@@ -18,6 +51,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # 4. Redis Cache & Messaging Broker
   redis:
     image: redis:7-alpine
     container_name: embedmind-redis
@@ -31,6 +65,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # 5. Vector Database (ChromaDB)
   chromadb:
     image: chromadb/chroma:0.5.3
     container_name: embedmind-chromadb

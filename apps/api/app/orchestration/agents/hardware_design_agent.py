@@ -1,11 +1,8 @@
 import json
-import google.generativeai as genai
 from pydantic import BaseModel, Field
 from app.core.config import settings
 from app.orchestration.state import GraphState
-
-# Configure Gemini
-genai.configure(api_key=settings.GEMINI_API_KEY)
+from app.orchestration.llm_client import query_llm
 
 class ComponentItem(BaseModel):
     name: str = Field(description="Name/Model of the component, e.g. DHT22, RFM95W.")
@@ -68,23 +65,17 @@ raw_schema = {
 }
 
 def run_hardware_design_agent(state: GraphState) -> dict:
-    model = genai.GenerativeModel(
-        model_name="gemini-3.5-flash",
-        generation_config={
-            "response_mime_type": "application/json",
-            "response_schema": raw_schema,
-            "temperature": 0.1
-        },
-        system_instruction=(
-            "You are the Hardware Design Agent for EmbedMind AI, an expert embedded hardware engineer.\n"
-            "Your task is to take finalized requirement specification and conversation history, select a suitable MCU, select peripheral sensors, map their pins logically to standard communication buses (SPI/I2C/UART/GPIO/etc.), and generate an estimated BOM.\n\n"
-            "You MUST respond with a JSON object that strictly adheres to the requested schema. Provide a complete pin mapping with power connections (VCC, GND) and logical pins."
-        )
+    system_instruction = (
+        "You are the Hardware Design Agent for EmbedMind AI, an expert embedded hardware engineer.\n"
+        "Your task is to take finalized requirement specification and conversation history, select a suitable MCU, select peripheral sensors, map their pins logically to standard communication buses (SPI/I2C/UART/GPIO/etc.), and generate an estimated BOM.\n\n"
+        "You MUST respond with a JSON object that strictly adheres to the requested schema. Provide a complete pin mapping with power connections (VCC, GND) and logical pins."
     )
 
     history_str = ""
     for msg in state.get("conversation_history", []):
-        history_str += f"{msg.role.upper()}: {msg.content}\n"
+        role = msg.role if hasattr(msg, "role") else msg.get("role", "user")
+        content = msg.content if hasattr(msg, "content") else msg.get("content", "")
+        history_str += f"{role.upper()}: {content}\n"
 
     reqs_str = (
         f"Finalized Requirements:\n"
@@ -100,8 +91,7 @@ def run_hardware_design_agent(state: GraphState) -> dict:
     )
 
     try:
-        response = model.generate_content(prompt)
-        res_json = json.loads(response.text)
+        res_json = query_llm(system_instruction, prompt, HardwareDesignOutput)
         parsed = HardwareDesignOutput(**res_json)
         
         # Save to database (will be done in router, but we update the graph state here)
