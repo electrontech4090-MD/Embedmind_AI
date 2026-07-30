@@ -1,0 +1,149 @@
+/* ==========================================================================
+   EMBEDMIND-AI - RED & BLACK CYBER MATRIX ANIMATION THEME
+   ========================================================================== */
+
+:root {
+    --bg-black: #030102;
+    --red-primary: #ff003c;
+    --red-bright: #ff2a55;
+    --red-glow: rgba(255, 0, 60, 0.7);
+    --red-dark: #660018;
+    --font-brand: 'Orbitron', 'Syncopate', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bg-black);
+    color: #ffffff;
+    font-family: var(--font-brand);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* Vortex Background Canvas */
+#vortexCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+}
+
+/* Rotating Cyber HUD Target Rings */
+.hud-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px dashed rgba(255, 0, 60, 0.3);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.ring-outer {
+    width: 650px;
+    height: 650px;
+    border: 2px dashed rgba(255, 0, 60, 0.35);
+    animation: rotateCW 25s linear infinite;
+    box-shadow: 0 0 30px rgba(255, 0, 60, 0.15);
+}
+
+.ring-middle {
+    width: 480px;
+    height: 480px;
+    border: 1px solid rgba(255, 0, 60, 0.2);
+    border-top-color: var(--red-primary);
+    border-bottom-color: var(--red-primary);
+    animation: rotateCCW 15s linear infinite;
+}
+
+.ring-inner {
+    width: 320px;
+    height: 320px;
+    border: 2px dotted rgba(255, 42, 85, 0.4);
+    animation: rotateCW 10s linear infinite;
+}
+
+@keyframes rotateCW {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes rotateCCW {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(-360deg); }
+}
+
+/* Display Container */
+.display-container {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 30px;
+    perspective: 1000px;
+}
+
+.brand-wrapper {
+    position: relative;
+    display: inline-block;
+    padding: 30px 50px;
+    background: rgba(10, 2, 5, 0.4);
+    border: 1px solid rgba(255, 0, 60, 0.25);
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 50px rgba(255, 0, 60, 0.2);
+    transition: transform 0.2s ease-out;
+}
+
+/* Laser Scanner Beam */
+.laser-scanner {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 0, 60, 0.4), rgba(255, 0, 60, 0.8), transparent);
+    transform: skewX(-25deg);
+    pointer-events: none;
+    animation: scanSweep 3.5s infinite ease-in-out;
+}
+
+@keyframes scanSweep {
+    0% { left: -100%; }
+    50%, 100% { left: 140%; }
+}
+
+/* Brand Text Styling */
+.brand-name {
+    font-size: clamp(2.2rem, 7vw, 5.8rem);
+    font-weight: 900;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    color: #ffffff;
+    background: linear-gradient(180deg, #ffffff 40%, var(--red-bright) 75%, var(--red-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 35px var(--red-glow), 0 0 70px var(--red-primary);
+    user-select: none;
+    cursor: default;
+    display: inline-block;
+}
+
+@media (max-width: 700px) {
+    .ring-outer { width: 380px; height: 380px; }
+    .ring-middle { width: 300px; height: 300px; }
+    .ring-inner { width: 220px; height: 220px; }
+    .brand-name { letter-spacing: 3px; }
+}
