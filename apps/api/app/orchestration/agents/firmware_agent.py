@@ -20,11 +20,10 @@ def run_firmware_agent(state: GraphState) -> dict:
         "You are the Firmware Design Agent for EmbedMind AI, a senior embedded firmware engineer.\n"
         "Your task is to write clean, modular C/C++ source and header files "
         "to initialize the microcontroller and communicate with the chosen peripheral sensors.\n\n"
-        "You MUST read the hardware design configuration:\n"
-        "- Configure GPIO pins, registers, and serial busses (SPI/I2C/UART) to match the EXACT pins specified in the pin map.\n"
-        "- Write initialization functions for all selected components.\n"
-        "- Keep the generated code concise (less than 60 lines of code per file). Use stubs and comments for repetitive driver boilerplate to prevent token truncation.\n"
-        "- Provide exactly 2 or 3 files: a main.c, a main.h, and one driver file (e.g. dht22.h)."
+        "Directives:\n"
+        "1. Read the hardware design configuration and configure GPIO pins, registers, and serial busses (SPI/I2C/UART) to match the EXACT pins in the pin map.\n"
+        "2. Provide 2 or 3 files: main.c, main.h, and a driver header file.\n"
+        "3. CRITICAL: Output strictly valid, properly formatted JSON. Ensure every key-value pair uses standard quotes (e.g. \"filename\": \"main.c\", \"content\": \"...code...\", \"language\": \"c\"). Escape all internal double quotes inside code strings with backslashes."
     )
 
     # Format the current hardware layout details for the prompt

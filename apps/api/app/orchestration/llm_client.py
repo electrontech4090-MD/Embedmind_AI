@@ -46,7 +46,7 @@ def query_llm(system_instruction: str, prompt: str, response_schema: type[BaseMo
     if settings.LLM_PROVIDER == "hybrid":
         use_grok = (provider == "grok")
 
-    def call_groq():
+    def call_groq(retries=1):
         is_groq = settings.GROK_API_KEY.startswith("gsk_")
         base_url = "https://api.groq.com/openai/v1/chat/completions" if is_groq else "https://api.x.ai/v1/chat/completions"
         default_model = "llama-3.3-70b-versatile" if is_groq else "grok-2-1212"
@@ -68,6 +68,11 @@ def query_llm(system_instruction: str, prompt: str, response_schema: type[BaseMo
         
         with httpx.Client(timeout=60.0) as client:
             response = client.post(base_url, headers=headers, json=payload)
+            if response.status_code != 200:
+                print(f"GROQ_RESPONSE_ERROR ({response.status_code}):", response.text)
+                if response.status_code == 400 and retries > 0:
+                    print("Retrying Groq API call once...")
+                    return call_groq(retries=retries - 1)
             response.raise_for_status()
             res_data = response.json()
             text_content = res_data["choices"][0]["message"]["content"]
@@ -113,6 +118,8 @@ def query_llm(system_instruction: str, prompt: str, response_schema: type[BaseMo
         
         with httpx.Client(timeout=60.0) as client:
             response = client.post(base_url, headers=headers, params=params, json=payload)
+            if response.status_code != 200:
+                print(f"GEMINI_RESPONSE_ERROR ({response.status_code}):", response.text)
             response.raise_for_status()
             res_data = response.json()
             text_content = res_data["candidates"][0]["content"]["parts"][0]["text"]
